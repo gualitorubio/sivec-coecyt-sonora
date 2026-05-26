@@ -1,6 +1,6 @@
 import streamlit as st
 import requests
-from google import genai
+from google import genai  # Esta es la única línea correcta para google-genai
 import io
 import datetime
 from supabase import create_client
