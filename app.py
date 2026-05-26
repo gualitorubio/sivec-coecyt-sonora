@@ -4,16 +4,16 @@ from supabase import create_client
 import datetime
 
 # ==============================================================================
-# CONFIGURACIÓN E IDENTIDAD
+# CONFIGURACIÓN
 # ==============================================================================
 st.set_page_config(page_title="SIVEC - COECyT Sonora", page_icon=" 🔬 ", layout="wide")
 
-# Inicialización de Clientes
+# Inicialización
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
 # ==============================================================================
-# LÓGICA DE CONTROL SUPABASE
+# LÓGICA DE CONTROL
 # ==============================================================================
 def verificar_limite_y_sumar(user_id):
     hoy = str(datetime.date.today())
