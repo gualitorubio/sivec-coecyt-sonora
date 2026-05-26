@@ -2,10 +2,6 @@ import streamlit as st
 import google.generativeai as genai
 from supabase import create_client
 import datetime
-import io
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
 
 # ==============================================================================
 # CONFIGURACIÓN E IDENTIDAD
@@ -34,25 +30,19 @@ def verificar_limite_y_sumar(user_id):
     return False
 
 # ==============================================================================
-# MOTOR SIVEC (Tu lógica original)
+# MOTOR SIVEC
 # ==============================================================================
 def ejecutar_sivec(termino, pregunta):
-    # Aquí va tu lógica que ya tenías. 
-    # Asegúrate de usar 'genai.GenerativeModel' para tus llamadas.
-    st.write(f"Iniciando análisis técnico para: {termino}")
     model = genai.GenerativeModel('gemini-1.5-flash')
     response = model.generate_content(pregunta)
     st.markdown(response.text)
 
 # ==============================================================================
-# INTERFAZ Y FLUJO
+# INTERFAZ
 # ==============================================================================
 st.title(" 🔬  SIVEC - COECyT Sonora")
-st.markdown("---")
-
 st.sidebar.header(" ⚙️  Acceso Institucional")
 user_email = st.sidebar.text_input("Correo Institucional (COECyT):")
-
 termino_busqueda = st.text_input("Palabras clave:")
 pregunta_usuario = st.text_area("Pregunta de investigación:")
 
@@ -62,7 +52,6 @@ if st.button(" 🚀  Lanzar Análisis de Vanguardia"):
     elif not termino_busqueda or not pregunta_usuario:
         st.warning("⚠️ Complete todos los campos.")
     else:
-        # Validación de Supabase
         if verificar_limite_y_sumar(user_email):
             with st.status(" 🛸  Procesando...", expanded=True) as status:
                 ejecutar_sivec(termino_busqueda, pregunta_usuario)
