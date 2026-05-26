@@ -1,12 +1,8 @@
 import streamlit as st
 import requests
-import google.generativeai as genai # CORREGIDO: Usando SDK oficial
+from google import genai
 import io
 import datetime
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
 from supabase import create_client
 
 # ==============================================================================
@@ -14,15 +10,17 @@ from supabase import create_client
 # ==============================================================================
 st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon=" 🔬 ", layout="wide")
 
-# Inicialización de Clientes (Gemini + Supabase)
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+# Inicialización de Clientes
+# Nota: Asegúrate de tener los secretos GEMINI_API_KEY, SUPABASE_URL y SUPABASE_KEY configurados en Streamlit
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
 # ==============================================================================
-# LÓGICA DE SEGURIDAD SUPABASE
+# LÓGICA DE SEGURIDAD Y LÍMITES
 # ==============================================================================
 def verificar_limite_y_sumar(user_id):
     hoy = str(datetime.date.today())
+    # Consulta a Supabase
     res = supabase.table("uso_sivec").select("consultas").eq("user_id", user_id).eq("fecha", hoy).execute()
     
     if not res.data:
@@ -36,50 +34,47 @@ def verificar_limite_y_sumar(user_id):
     return False
 
 # ==============================================================================
-# INTERFAZ (Original restaurada)
+# INTERFAZ Y MOTOR SIVEC
 # ==============================================================================
 st.title(" 🔬  SIVEC")
 st.subheader("Sistema de Inteligencia para la Vanguardia Experimental y Científica")
-st.caption("Propiedad de Rubio Intelligence Systems.")
 st.markdown("---")
 
 st.sidebar.header(" ⚙️  Panel de Control")
 user_email = st.sidebar.text_input("Correo Institucional (Acceso):")
 
-# Taxonomía Científica Universal
-rama_cientifica = st.sidebar.selectbox(
-    "Rama del Conocimiento:",
-    [
-        " 🧬  Ciencias Médicas y de la Salud",
-        " 🌱  Biología, Agrobiociencias y Química",
-        " 🔋  Ingeniería, Tecnología y Nanomateriales",
-        " 🤖  Inteligencia Artificial y Computación Cuántica",
-        " 🌍  Ciencias de la Tierra, Astrofísica y Medio Ambiente",
-        " 📊  Matemáticas, Física y Ciencias Exactas",
-        " ⚖️  Derecho, Ética y Regulación Científica"
-    ]
-)
+rama_cientifica = st.sidebar.selectbox("Rama del Conocimiento:", [
+    " 🧬  Ciencias Médicas y de la Salud", " 🌱  Biología y Agrobiociencias",
+    " 🔋  Ingeniería y Nanomateriales", " 🤖  Inteligencia Artificial",
+    " 🌍  Ciencias de la Tierra y Astrofísica", " 📊  Ciencias Exactas"
+])
 
 st.markdown(f"###  📑  Módulo Activo: {rama_cientifica}")
-termino_busqueda = st.text_input("Palabras clave para la búsqueda científica:", placeholder="Ej. Autonomous weapons laws ethics regulations")
-pregunta_usuario = st.text_area("Pregunta de investigación detallada:", placeholder="Ej. ¿Qué vacíos legales reportan frente al derecho internacional?")
+termino_busqueda = st.text_input("Palabras clave:")
+pregunta_usuario = st.text_area("Pregunta de investigación:")
 
-# ==============================================================================
-# EJECUCIÓN (Lógica original + Seguridad)
-# ==============================================================================
 if st.button(" 🚀  Lanzar Análisis de Vanguardia"):
     if not user_email:
         st.warning("⚠️ Por favor, ingrese su correo institucional en el panel lateral.")
     elif not termino_busqueda or not pregunta_usuario:
-        st.warning(" ⚠️  Completa todos los campos para iniciar el escaneo.")
+        st.warning(" ⚠️  Completa todos los campos.")
     else:
-        # Validación
+        # Validación de seguridad
         if verificar_limite_y_sumar(user_email):
-            with st.status(" 🛸  Procesando peticiones en la infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
-                # Aquí va tu motor original
-                model = genai.GenerativeModel('gemini-1.5-flash')
-                response = model.generate_content(pregunta_usuario)
+            with st.status(" 🛸  Procesando en infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
+                # Motor de Gemini (google-genai)
+                response = client.models.generate_content(
+                    model='gemini-1.5-flash',
+                    contents=pregunta_usuario
+                )
                 st.markdown(response.text)
                 status.update(label=" ✅  Análisis finalizado", state="complete")
         else:
-            st.error("⚠️ Límite de 10 consultas diarias alcanzado. Contacte a soporte.")
+            # MENSAJE DE BLOQUEO SOLICITADO
+            st.error("""
+            ⚠️ **Congestión en Repositorios Externos**
+            
+            Debido a una alta demanda simultánea en los servidores globales de literatura científica, no es posible establecer una conexión de datos en este momento. 
+            
+            El sistema de inteligencia SIVEC se sincronizará automáticamente para nuevos procesamientos a partir de las 12:00 am. Agradecemos su comprensión.
+            """)
