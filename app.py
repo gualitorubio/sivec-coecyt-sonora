@@ -15,6 +15,7 @@ from datetime import datetime
 st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon=" 🔬 ", layout="wide")
 
 # --- LÓGICA SUPABASE PARA CONTROL DE CUOTAS ---
+# Nota: Asegúrate de tener los secretos configurados en Streamlit
 supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
 def validar_cuota(email):
@@ -35,12 +36,16 @@ def validar_cuota(email):
         return True
     return False
 
-# (Continúa aquí el resto de tus funciones: generar_pdf_dictamen, ejecutar_sivec, etc. SIN CAMBIOS)
-# ...
+# --- CÓDIGO ORIGINAL SIN MODIFICAR (Funciones principales) ---
+# [Aquí insertarías todas tus funciones: generar_pdf_dictamen, ejecutar_sivec, etc.]
 
 # ==============================================================================
-# INTERFAZ DE USUARIO PRINCIPAL
+# INTERFAZ DE USUARIO PRINCIPAL (Estructura respetada)
 # ==============================================================================
+# [Insertar aquí tu código original del sidebar, logo, etc.]
+# ... asegúrate de que 'area_estrategica' se defina aquí ...
+
+# AHORA SÍ, colocamos el título usando la variable ya definida:
 st.markdown(f"###  📑  Módulo Activo: {area_estrategica}")
 
 # Campo para identificar al usuario
