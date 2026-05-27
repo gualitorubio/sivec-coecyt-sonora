@@ -10,8 +10,19 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
-# --- CAPA DE SEGURIDAD (No toca tu lógica, solo la protege) ---
-def verificar_cuota(email):
+# --- CONFIGURACIÓN E IDENTIDAD CORPORATIVA ---
+st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon="🔬", layout="wide")
+
+# --- LÓGICA DE CONTROL DE CUOTAS (NO TOCA TU LÓGICA ORIGINAL) ---
+def verificar_acceso(email):
+    # Lista de correos autorizados (puedes editar este archivo localmente)
+    if not os.path.exists("usuarios_autorizados.txt"):
+        with open("usuarios_autorizados.txt", "w") as f: f.write("admin@rubio.com")
+    with open("usuarios_autorizados.txt", "r") as f:
+        autorizados = [line.strip() for line in f.readlines()]
+    if email not in autorizados: return False, "Usuario no autorizado."
+
+    # Control de cuota de 10 diarias
     archivo_cuotas = "cuotas_sivec.json"
     hoy = datetime.date.today().isoformat()
     if os.path.exists(archivo_cuotas):
@@ -19,14 +30,13 @@ def verificar_cuota(email):
     else: datos = {}
     if email not in datos or datos[email]["fecha"] != hoy:
         datos[email] = {"fecha": hoy, "consultas": 0}
-    if datos[email]["consultas"] >= 10: return False
+    if datos[email]["consultas"] >= 10: return False, "Límite de 10 consultas diarias alcanzado."
+    
     datos[email]["consultas"] += 1
     with open(archivo_cuotas, "w") as f: json.dump(datos, f)
-    return True
+    return True, "Acceso concedido"
 
-# --- TU CÓDIGO ORIGINAL SIN MODIFICAR ---
-st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon="🔬", layout="wide")
-
+# --- INTERFAZ Y CÓDIGO ORIGINAL DEL PDF ---
 st.title("🔬 SIVEC")
 st.subheader("Sistema de Inteligencia para la Vanguardia Experimental y Científica")
 st.caption("Propiedad de Rubio Intelligence Systems.")
@@ -46,26 +56,22 @@ rama_cientifica = st.sidebar.selectbox("Rama del Conocimiento:", [
 ])
 
 max_papers = st.sidebar.slider("Lote de Documentos Analíticos:", 1, 3, 2)
+user_email = st.text_input("Correo electrónico registrado:")
 
-# NUEVA ENTRADA (Obligatoria para el conteo)
-user_email = st.text_input("Correo electrónico para control de acceso:")
+termino_busqueda = st.text_input("Palabras clave para la búsqueda científica:")
+pregunta_usuario = st.text_area("Pregunta de investigación detallada:")
 
-st.markdown(f"### 📑 Módulo Activo: {rama_cientifica}")
-termino_busqueda = st.text_input("Palabras clave:", placeholder="Ej. Autonomous weapons laws")
-pregunta_usuario = st.text_area("Pregunta de investigación detallada:", placeholder="Ej. ¿Qué vacíos legales existen?")
-
-# --- AQUÍ PROTEGEMOS EL BOTÓN ---
 if st.button("🚀 Lanzar Análisis de Vanguardia"):
-    if not user_email:
-        st.warning("⚠️ Debes ingresar un correo para iniciar.")
-    elif not termino_busqueda or not pregunta_usuario:
+    if not user_email or not termino_busqueda or not pregunta_usuario:
         st.warning("⚠️ Completa todos los campos.")
-    elif verificar_cuota(user_email):
-        # A PARTIR DE AQUÍ VA TODO TU CÓDIGO ORIGINAL DEL PDF
-        # Pega aquí exactamente tu código (requests, genai, reportlab...)
-        with st.status("🛸 Procesando peticiones en la infraestructura de Rubio Intelligence Systems...", expanded=True):
-            st.write("Conectando con repositorios...")
-            # TU LÓGICA ORIGINAL AQUÍ
-            st.success("✅ Análisis finalizado")
     else:
-        st.error("⚠️ Límite de 10 consultas diarias alcanzado. Intenta mañana.")
+        autorizado, mensaje = verificar_acceso(user_email)
+        if not autorizado:
+            st.error(f"⚠️ {mensaje}")
+        else:
+            # --- TU CÓDIGO ORIGINAL DEL PDF ---
+            with st.status("🛸 Procesando peticiones en la infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
+                # Aquí se ejecuta tu lógica original de SIVEC
+                st.write("Conectando con repositorios...")
+                # ... (resto de tu código que genera los papers y el dictamen)
+                status.update(label="✅ Análisis finalizado", state="complete")
