@@ -13,16 +13,16 @@ from reportlab.lib import colors
 # --- CONFIGURACIÓN E IDENTIDAD CORPORATIVA ---
 st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon="🔬", layout="wide")
 
-# --- LÓGICA DE CONTROL DE CUOTAS (NO TOCA TU LÓGICA ORIGINAL) ---
+# --- LÓGICA DE CONTROL (Persistente en archivo JSON) ---
 def verificar_acceso(email):
-    # Lista de correos autorizados (puedes editar este archivo localmente)
+    # 1. Lista de correos autorizados
     if not os.path.exists("usuarios_autorizados.txt"):
         with open("usuarios_autorizados.txt", "w") as f: f.write("admin@rubio.com")
     with open("usuarios_autorizados.txt", "r") as f:
         autorizados = [line.strip() for line in f.readlines()]
     if email not in autorizados: return False, "Usuario no autorizado."
 
-    # Control de cuota de 10 diarias
+    # 2. Control de cuota diaria
     archivo_cuotas = "cuotas_sivec.json"
     hoy = datetime.date.today().isoformat()
     if os.path.exists(archivo_cuotas):
@@ -36,7 +36,7 @@ def verificar_acceso(email):
     with open(archivo_cuotas, "w") as f: json.dump(datos, f)
     return True, "Acceso concedido"
 
-# --- INTERFAZ Y CÓDIGO ORIGINAL DEL PDF ---
+# --- INTERFAZ PRINCIPAL ---
 st.title("🔬 SIVEC")
 st.subheader("Sistema de Inteligencia para la Vanguardia Experimental y Científica")
 st.caption("Propiedad de Rubio Intelligence Systems.")
@@ -57,10 +57,10 @@ rama_cientifica = st.sidebar.selectbox("Rama del Conocimiento:", [
 
 max_papers = st.sidebar.slider("Lote de Documentos Analíticos:", 1, 3, 2)
 user_email = st.text_input("Correo electrónico registrado:")
-
 termino_busqueda = st.text_input("Palabras clave para la búsqueda científica:")
 pregunta_usuario = st.text_area("Pregunta de investigación detallada:")
 
+# --- EJECUCIÓN (Lógica única del botón) ---
 if st.button("🚀 Lanzar Análisis de Vanguardia"):
     if not user_email or not termino_busqueda or not pregunta_usuario:
         st.warning("⚠️ Completa todos los campos.")
@@ -69,9 +69,10 @@ if st.button("🚀 Lanzar Análisis de Vanguardia"):
         if not autorizado:
             st.error(f"⚠️ {mensaje}")
         else:
-            # --- TU CÓDIGO ORIGINAL DEL PDF ---
+            # --- AQUÍ VA TU LÓGICA ORIGINAL ---
             with st.status("🛸 Procesando peticiones en la infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
-                # Aquí se ejecuta tu lógica original de SIVEC
                 st.write("Conectando con repositorios...")
-                # ... (resto de tu código que genera los papers y el dictamen)
+                # PEGA AQUÍ EL BLOQUE DE CÓDIGO QUE GENERA EL PDF Y LLAMA A LAS APIs
+                # ...
+                st.success("✅ Análisis finalizado")
                 status.update(label="✅ Análisis finalizado", state="complete")
