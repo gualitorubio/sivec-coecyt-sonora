@@ -1,20 +1,20 @@
 import streamlit as st
-from google import genai
+import google.generativeai as genai
 import datetime
 from supabase import create_client
+import io
+from reportlab.pdfgen import canvas
 
 # ==============================================================================
-# CONFIGURACIÓN E IDENTIDAD CORPORATIVA - RUBIO INTELLIGENCE SYSTEMS
+# CONFIGURACIÓN E IDENTIDAD CORPORATIVA
 # ==============================================================================
 st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon=" 🔬 ", layout="wide")
 
 # Inicialización de Clientes
-try:
-    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
-    supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
-except Exception as e:
-    st.error(f"Error crítico de inicialización: {e}")
-    st.stop()
+# IMPORTANTE: Asegúrate de que SUPABASE_URL en Secrets NO tenga "/rest/v1/"
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+model = genai.GenerativeModel('gemini-1.5-flash')
+supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
 # ==============================================================================
 # LÓGICA DE SEGURIDAD Y LÍMITES
@@ -39,6 +39,7 @@ def verificar_limite_y_sumar(user_id):
         return False # Límite alcanzado
         
     except Exception as e:
+        # Captura cualquier error de conexión o base de datos sin romper la app
         st.error(f"Error de sincronización con el sistema central: {e}")
         return False
 
@@ -72,12 +73,22 @@ if st.button(" 🚀 Lanzar Análisis de Vanguardia"):
         if verificar_limite_y_sumar(user_email):
             with st.status(" 🛸 Procesando en infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
                 try:
-                    # Motor de Gemini (google-genai)
-                    response = client.models.generate_content(
-                        model='gemini-1.5-flash',
-                        contents=f"Rama: {rama_cientifica}. Pregunta: {pregunta_usuario}. Palabras clave: {termino_busqueda}"
+                    # Motor de Gemini (google-generativeai estable)
+                    response = model.generate_content(
+                        f"Rama: {rama_cientifica}. Pregunta: {pregunta_usuario}. Palabras clave: {termino_busqueda}"
                     )
                     st.markdown(response.text)
+                    
+                    # Generación de reporte PDF
+                    buffer = io.BytesIO()
+                    c = canvas.Canvas(buffer)
+                    c.drawString(100, 750, "Reporte Científico SIVEC")
+                    c.drawString(100, 730, response.text[:200]) # Resumen al PDF
+                    c.save()
+                    buffer.seek(0)
+                    
+                    st.download_button("Descargar Informe PDF", buffer, "informe_cientifico.pdf", "application/pdf")
+                    
                     status.update(label=" ✅ Análisis finalizado", state="complete")
                 except Exception as e:
                     status.update(label=" ❌ Error en el procesamiento de IA", state="error")
