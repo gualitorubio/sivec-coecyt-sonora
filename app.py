@@ -11,7 +11,9 @@ from supabase import create_client
 st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon=" 🔬 ", layout="wide")
 
 # Inicialización de Clientes
+# Se utiliza la versión estable configurada con la API Key de tus secretos
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+# Definimos el modelo explícitamente
 model = genai.GenerativeModel('gemini-1.5-flash')
 supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
@@ -20,6 +22,7 @@ supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 # ==============================================================================
 def verificar_limite_y_sumar(user_id):
     hoy = str(datetime.date.today())
+    # Consulta a Supabase
     res = supabase.table("uso_sivec").select("consultas").eq("user_id", user_id).eq("fecha", hoy).execute()
     
     if not res.data:
@@ -64,15 +67,23 @@ if st.button(" 🚀  Lanzar Análisis de Vanguardia"):
     elif not termino_busqueda or not pregunta_usuario:
         st.warning(" ⚠️  Completa todos los campos.")
     else:
+        # Validación de seguridad
         if verificar_limite_y_sumar(user_email):
             with st.status(" 🛸  Procesando en infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
-                # Motor de Gemini (google-generativeai estable)
-                response = model.generate_content(pregunta_usuario)
-                st.markdown(response.text)
-                status.update(label=" ✅  Análisis finalizado", state="complete")
+                try:
+                    # Motor de Gemini (Estable)
+                    response = model.generate_content(pregunta_usuario)
+                    st.markdown(response.text)
+                    status.update(label=" ✅  Análisis finalizado", state="complete")
+                except Exception as e:
+                    status.update(label=" ❌  Error en el procesamiento", state="error")
+                    st.error(f"Error técnico de comunicación: {e}")
         else:
+            # MENSAJE DE BLOQUEO SOLICITADO
             st.error("""
             ⚠️ **Congestión en Repositorios Externos**
             
-            El sistema de inteligencia SIVEC se sincronizará automáticamente para nuevos procesamientos a partir de las 12:00 am.
+            Debido a una alta demanda simultánea en los servidores globales de literatura científica, no es posible establecer una conexión de datos en este momento. 
+            
+            El sistema de inteligencia SIVEC se sincronizará automáticamente para nuevos procesamientos a partir de las 12:00 am. Agradecemos su comprensión.
             """)
