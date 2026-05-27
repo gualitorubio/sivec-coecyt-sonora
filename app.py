@@ -2,8 +2,8 @@ import streamlit as st
 import requests
 from google import genai
 import io
-import datetime # Agregado
-from supabase import create_client # Agregado
+import datetime # NECESARIO
+from supabase import create_client # NECESARIO
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -18,7 +18,7 @@ st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon=" 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
-# --- LÓGICA DE SUPABASE (INSERCIÓN QUIRÚRGICA) ---
+# --- FUNCIÓN DE VALIDACIÓN SUPABASE ---
 def verificar_limite_y_sumar(user_id):
     hoy = str(datetime.date.today())
     res = supabase.table("uso_sivec").select("consultas").eq("user_id", user_id).eq("fecha", hoy).execute()
@@ -32,28 +32,54 @@ def verificar_limite_y_sumar(user_id):
     return False
 
 # ==============================================================================
-# TU CÓDIGO ORIGINAL (MANTENIDO)
+# TU CÓDIGO ORIGINAL (Taxonomía, funciones de PDF, ejecutar_sivec)
 # ==============================================================================
-# ... [Aquí va todo tu código original: Taxonomía, funciones, ejecutar_sivec] ...
+st.title(" 🔬  SIVEC")
+st.subheader("Sistema de Inteligencia para la Vanguardia Experimental y Científica")
+st.caption("Propiedad de Rubio Intelligence Systems.")
+st.markdown("---")
+st.sidebar.header(" ⚙️  Panel de Control")
 
-# ==============================================================================
-# INTERFAZ (AJUSTE EN EL BOTÓN)
-# ==============================================================================
+try:
+    st.sidebar.image("logo_rubio_is.png", width=250)
+except Exception:
+    pass
+
+# Taxonomía Científica Universal
+rama_cientifica = st.sidebar.selectbox("Rama del Conocimiento:", [
+    " 🧬  Ciencias Médicas y de la Salud",
+    " 🌱  Biología, Agrobiociencias y Química",
+    " 🔋  Ingeniería, Tecnología y Nanomateriales",
+    " 🤖  Inteligencia Artificial y Computación Cuántica",
+    " 🌍  Ciencias de la Tierra, Astrofísica y Medio Ambiente",
+    " 📊  Matemáticas, Física y Ciencias Exactas",
+    " ⚖️  Ciencias Sociales, Economía y Derecho",
+    " 🎨  Humanidades, Filosofía y Estudios de Comportamiento",
+    " ✨  Personalizada / Otra Rama Científica"
+])
+
+# Tu campo de usuario agregado para Supabase
 user_email = st.sidebar.text_input("Correo Institucional (Acceso):")
 
+# (Aquí va el resto de tu código original de UI...)
+st.markdown(f"###  📑  Módulo Activo: {rama_cientifica}")
+termino_busqueda = st.text_input("Palabras clave para la búsqueda científica (parámetros técnicos globales):")
+pregunta_usuario = st.text_area("Pregunta de investigación detallada (objetivos del dictamen):")
+
+# BOTÓN CON FILTRO DE SUPABASE
 if st.button(" 🚀  Lanzar Análisis de Vanguardia"):
     if not user_email:
-        st.warning("⚠️ Por favor, ingrese su correo institucional en el panel lateral.")
+        st.warning("⚠️ Por favor, ingrese su correo institucional.")
     elif not termino_busqueda or not pregunta_usuario:
         st.warning(" ⚠️  Completa ambos campos para iniciar el escaneo.")
     else:
-        # VALIDACIÓN QUE INTEGRA SUPABASE
+        # Aquí se aplica el límite:
         if verificar_limite_y_sumar(user_email):
             with st.status(" 🛸  Procesando peticiones en la infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
-                ejecutar_sivec(termino_busqueda, pregunta_usuario)
+                ejecutar_sivec(termino_busqueda, pregunta_usuario) # Llamada a tu función original
                 status.update(label=" ✅  Análisis finalizado", state="complete")
         else:
-            # MENSAJE DE BLOQUEO SOLICITADO
+            # EL MENSAJE DE BLOQUEO QUE PEDISTE
             st.error("""
             ⚠️ **Congestión en Repositorios Externos**
             
