@@ -2,8 +2,8 @@ import streamlit as st
 import requests
 from google import genai
 import io
-import datetime # NECESARIO PARA EL CONTROL DE FECHAS
-from supabase import create_client # NECESARIO PARA SUPABASE
+import datetime # Agregado
+from supabase import create_client # Agregado
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -18,7 +18,7 @@ st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon=" 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
-# --- LÓGICA DE SUPABASE INTEGRADA ---
+# --- LÓGICA DE SUPABASE (INSERCIÓN QUIRÚRGICA) ---
 def verificar_limite_y_sumar(user_id):
     hoy = str(datetime.date.today())
     res = supabase.table("uso_sivec").select("consultas").eq("user_id", user_id).eq("fecha", hoy).execute()
@@ -32,30 +32,28 @@ def verificar_limite_y_sumar(user_id):
     return False
 
 # ==============================================================================
-# TU CÓDIGO ORIGINAL (Taxonomía, funciones, ejecutar_sivec)
+# TU CÓDIGO ORIGINAL (MANTENIDO)
 # ==============================================================================
-# (Aquí mantienes tu código original intacto, incluyendo la función ejecutar_sivec)
-# ... [PEGA AQUÍ TODA TU LÓGICA ORIGINAL] ...
+# ... [Aquí va todo tu código original: Taxonomía, funciones, ejecutar_sivec] ...
 
 # ==============================================================================
-# INTERFAZ DE USUARIO Y LLAMADA FINAL (AJUSTADA)
+# INTERFAZ (AJUSTE EN EL BOTÓN)
 # ==============================================================================
-# (Mantén tu sidebar y los campos termino_busqueda y pregunta_usuario)
 user_email = st.sidebar.text_input("Correo Institucional (Acceso):")
 
 if st.button(" 🚀  Lanzar Análisis de Vanguardia"):
     if not user_email:
-        st.warning("⚠️ Por favor, ingrese su correo institucional.")
+        st.warning("⚠️ Por favor, ingrese su correo institucional en el panel lateral.")
     elif not termino_busqueda or not pregunta_usuario:
         st.warning(" ⚠️  Completa ambos campos para iniciar el escaneo.")
     else:
-        # VALIDACIÓN DE SUPABASE ANTES DE EJECUTAR TU FUNCIÓN ORIGINAL
+        # VALIDACIÓN QUE INTEGRA SUPABASE
         if verificar_limite_y_sumar(user_email):
             with st.status(" 🛸  Procesando peticiones en la infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
                 ejecutar_sivec(termino_busqueda, pregunta_usuario)
                 status.update(label=" ✅  Análisis finalizado", state="complete")
         else:
-            # TU MENSAJE DE BLOQUEO EXACTO
+            # MENSAJE DE BLOQUEO SOLICITADO
             st.error("""
             ⚠️ **Congestión en Repositorios Externos**
             
