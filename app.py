@@ -62,4 +62,4 @@ if st.button(" 🚀  Lanzar Análisis de Vanguardia"):
             Debido a una alta demanda simultánea en los servidores globales de literatura científica, no es posible establecer una conexión de datos en este momento. 
             
             El sistema de inteligencia SIVEC se sincronizará automáticamente para nuevos procesamientos a partir de las 12:00 am. Agradecemos su comprensión.
-            ")
+            """)
