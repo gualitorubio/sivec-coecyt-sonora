@@ -2,62 +2,62 @@ import streamlit as st
 import requests
 from google import genai
 import io
-import datetime
-from supabase import create_client
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
+from supabase import create_client
+from datetime import datetime
 
 # ==============================================================================
-# CONFIGURACIÓN E INICIALIZACIÓN
+# CONFIGURACIÓN E IDENTIDAD CORPORATIVA - RUBIO INTELLIGENCE SYSTEMS
 # ==============================================================================
 st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon=" 🔬 ", layout="wide")
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+
+# --- LÓGICA SUPABASE PARA CONTROL DE CUOTAS ---
 supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
-# Lógica Supabase
-def verificar_limite_y_sumar(user_id):
-    hoy = str(datetime.date.today())
-    res = supabase.table("uso_sivec").select("consultas").eq("user_id", user_id).eq("fecha", hoy).execute()
+def validar_cuota(email):
+    hoy = datetime.now().strftime("%Y-%m-%d")
+    res = supabase.table("usuarios_sivec").select("*").eq("email", email).execute()
+    
     if not res.data:
-        supabase.table("uso_sivec").insert({"user_id": user_id, "fecha": hoy, "consultas": 1}).execute()
+        supabase.table("usuarios_sivec").insert({"email": email, "peticiones_hoy": 1, "ultima_fecha": hoy}).execute()
         return True
-    contador = res.data[0]['consultas']
-    if contador < 10:
-        supabase.table("uso_sivec").update({"consultas": contador + 1}).eq("user_id", user_id).eq("fecha", hoy).execute()
+    
+    usuario = res.data[0]
+    if usuario['ultima_fecha'] != hoy:
+        supabase.table("usuarios_sivec").update({"peticiones_hoy": 1, "ultima_fecha": hoy}).eq("email", email).execute()
+        return True
+    
+    if usuario['peticiones_hoy'] < 10:
+        supabase.table("usuarios_sivec").update({"peticiones_hoy": usuario['peticiones_hoy'] + 1}).eq("email", email).execute()
         return True
     return False
 
-# --- FUNCIÓN PRINCIPAL (AQUÍ ESTÁ TU LÓGICA ORIGINAL) ---
-def ejecutar_sivec(termino, pregunta):
-    # PEGA AQUÍ TODO EL CÓDIGO QUE TIENES EN TU DOCUMENTO ORIGINAL
-    # (Desde def ejecutar_sivec hasta el final de la generación del PDF)
-    st.write(f"Procesando: {termino}") # Temporal para verificar que funciona
-    pass 
+# (Continúa aquí el resto de tus funciones: generar_pdf_dictamen, ejecutar_sivec, etc. SIN CAMBIOS)
+# ...
 
 # ==============================================================================
-# INTERFAZ DE USUARIO
+# INTERFAZ DE USUARIO PRINCIPAL
 # ==============================================================================
-st.title(" 🔬  SIVEC")
-st.subheader("Sistema de Inteligencia para la Vanguardia Experimental y Científica")
-st.sidebar.header(" ⚙️  Panel de Control")
-user_email = st.sidebar.text_input("Correo Institucional (Acceso):")
-# (Aquí sigue tu taxonomía original de ramas)
-rama_cientifica = st.sidebar.selectbox("Rama del Conocimiento:", ["Ciencia 1", "Ciencia 2"])
+st.markdown(f"###  📑  Módulo Activo: {area_estrategica}")
 
-termino_busqueda = st.text_input("Palabras clave:")
-pregunta_usuario = st.text_area("Pregunta de investigación:")
+# Campo para identificar al usuario
+email_usuario = st.sidebar.text_input("Correo Institucional COECyT:")
+
+termino_busqueda = st.text_input("Palabras clave para la búsqueda científica:", placeholder="Ej. Autonomous weapons laws ethics regulations")
+pregunta_usuario = st.text_area("Pregunta de investigación detallada:", placeholder="Ej. ¿Qué vacíos legales reportan frente al derecho internacional?")
 
 if st.button(" 🚀  Lanzar Análisis de Vanguardia"):
-    if not user_email:
-        st.warning("⚠️ Ingrese correo en el panel lateral.")
+    if not email_usuario:
+        st.warning("⚠️ Por favor ingresa tu correo institucional para continuar.")
     elif not termino_busqueda or not pregunta_usuario:
-        st.warning(" ⚠️  Completa todos los campos.")
+        st.warning(" ⚠️  Completa ambos campos para iniciar el escaneo.")
     else:
-        # LLAMADA PROTEGIDA
-        if verificar_limite_y_sumar(user_email):
-            with st.status(" 🛸  Procesando...", expanded=True) as status:
+        # Validación de cuota antes de ejecutar
+        if validar_cuota(email_usuario):
+            with st.status(" 🛸  Procesando peticiones en la infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
                 ejecutar_sivec(termino_busqueda, pregunta_usuario)
                 status.update(label=" ✅  Análisis finalizado", state="complete")
         else:
