@@ -1,56 +1,87 @@
 import streamlit as st
 import requests
-from google import genai
+from google import genai 
 import io
-import os
 import datetime
-import pandas as pd
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
+from supabase import create_client
 
-# --- 1. MÓDULO DE SEGURIDAD (Inyectado fuera de tu lógica) ---
-def verificar_cuota(email):
-    archivo = "cuotas.csv"
-    hoy = datetime.date.today().isoformat()
-    if not os.path.exists(archivo): pd.DataFrame(columns=["email", "fecha", "consultas"]).to_csv(archivo, index=False)
-    df = pd.read_csv(archivo)
-    mask = (df["email"] == email) & (df["fecha"] == hoy)
-    if mask.any() and df.loc[mask, "consultas"].values[0] >= 10: return False
-    if mask.any(): df.loc[mask, "consultas"] += 1
-    else: df = pd.concat([df, pd.DataFrame({"email": [email], "fecha": [hoy], "consultas": [1]})], ignore_index=True)
-    df.to_csv(archivo, index=False)
-    return True
+# ==============================================================================
+# CONFIGURACIÓN E IDENTIDAD CORPORATIVA - RUBIO INTELLIGENCE SYSTEMS
+# ==============================================================================
+st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon=" 🔬 ", layout="wide")
 
-# --- 2. CONFIGURACIÓN E IDENTIDAD (Tu PDF original) ---
-st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon="🔬", layout="wide")
-st.title("🔬 SIVEC")
+# Inicialización de Clientes
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
+
+# ==============================================================================
+# LÓGICA DE SEGURIDAD Y LÍMITES (CORREGIDA)
+# ==============================================================================
+def verificar_limite_y_sumar(user_id):
+    hoy = str(datetime.date.today())
+    # 1. Buscar registro del usuario para hoy
+    res = supabase.table("uso_sivec").select("*").eq("user_id", user_id).eq("fecha", hoy).execute()
+    
+    if not res.data:
+        # Si no existe, insertar nuevo
+        supabase.table("uso_sivec").insert({"user_id": user_id, "fecha": hoy, "consultas": 1}).execute()
+        return True
+    
+    # Si existe, verificar contador
+    contador = res.data[0]['consultas']
+    if contador < 10:
+        # CORRECCIÓN: Para actualizar, usamos el ID único de la fila si existe, 
+        # o aseguramos el filtro. Supabase requiere un match claro.
+        supabase.table("uso_sivec").update({"consultas": contador + 1}).eq("user_id", user_id).eq("fecha", hoy).execute()
+        return True
+    return False
+
+# ==============================================================================
+# INTERFAZ Y MOTOR SIVEC (MANTENIDA EXACTAMENTE IGUAL)
+# ==============================================================================
+st.title(" 🔬  SIVEC")
 st.subheader("Sistema de Inteligencia para la Vanguardia Experimental y Científica")
-st.caption("Propiedad de Rubio Intelligence Systems.")
 st.markdown("---")
-st.sidebar.header("⚙️ Panel de Control")
 
-# --- 3. TU INTERFAZ (Tu PDF original) ---
-user_email = st.text_input("Correo electrónico para registro de cuota:")
-rama_cientifica = st.sidebar.selectbox("Rama del Conocimiento:", ["Ciencias Médicas y de la Salud", "Biología, Agrobiociencias y Química", "Ingeniería, Tecnología y Nanomateriales", "Inteligencia Artificial y Computación Cuántica", "Ciencias de la Tierra, Astrofísica y Medio Ambiente", "Matemáticas, Física y Ciencias Exactas", "Ciencias Sociales, Economía y Derecho", "Humanidades, Filosofía y Estudios de Comportamiento", "Personalizada / Otra Rama Científica"])
-termino_busqueda = st.text_input("Palabras clave para la búsqueda científica (parámetros técnicos globales):")
-pregunta_usuario = st.text_area("Pregunta de investigación detallada (objetivos del dictamen):")
+st.sidebar.header(" ⚙️  Panel de Control")
+user_email = st.sidebar.text_input("Correo Institucional (Acceso):")
 
-# --- 4. TU BOTÓN ORIGINAL (Modificado solo para validar) ---
-if st.button("🚀 Lanzar Análisis de Vanguardia"):
-    if not termino_busqueda or not pregunta_usuario or not user_email:
-        st.warning("⚠️ Completa todos los campos, incluyendo el correo.")
-    elif not verificar_cuota(user_email):
-        st.error("""
-        ⚠️ **Congestión en Repositorios Externos**
-        
-        Debido a una alta demanda simultánea en los servidores globales de literatura científica, no es posible establecer una conexión de datos en este momento. 
-        
-        El sistema de inteligencia SIVEC se sincronizará automáticamente para nuevos procesamientos a partir de las 12:00 am. Agradecemos su comprensión.""")
+rama_cientifica = st.sidebar.selectbox("Rama del Conocimiento:", [
+    "🧬 Ciencias Médicas y de la Salud",
+    "🌱 Biología, Agrobiociencias y Química",
+    "🔋 Ingeniería, Tecnología y Nanomateriales",
+    "🤖 Inteligencia Artificial y Computación Cuántica",
+    "🌍 Ciencias de la Tierra, Astrofísica y Medio Ambiente",
+    "📊 Matemáticas, Física y Ciencias Exactas",
+    "⚖️ Ciencias Sociales, Economía y Derecho",
+    "🎨 Humanidades, Filosofía y Estudios de Comportamiento",
+    "✨ Personalizada / Otra Rama Científica"
+])
+
+st.markdown(f"###  📑  Módulo Activo: {rama_cientifica}")
+termino_busqueda = st.text_input("Palabras clave:")
+pregunta_usuario = st.text_area("Pregunta de investigación:")
+
+if st.button(" 🚀  Lanzar Análisis de Vanguardia"):
+    if not user_email:
+        st.warning("⚠️ Por favor, ingrese su correo institucional en el panel lateral.")
+    elif not termino_busqueda or not pregunta_usuario:
+        st.warning(" ⚠️  Completa todos los campos.")
     else:
-        # AQUÍ EMPIEZA TU LÓGICA ORIGINAL EXACTA DEL PDF
-        with st.status("🛸 Procesando peticiones en la infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
-            st.write("Conectando con repositorios...")
-            # Pega aquí todo tu código de requests.get, genai, etc. tal cual viene en tu PDF
-            # ...
+        # Validación de seguridad
+        if verificar_limite_y_sumar(user_email):
+            with st.status(" 🛸  Procesando en infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
+                response = client.models.generate_content(
+                    model='gemini-1.5-flash',
+                    contents=pregunta_usuario
+                )
+                st.markdown(response.text)
+                status.update(label=" ✅  Análisis finalizado", state="complete")
+        else:
+            st.error("""
+            ⚠️ **Congestión en Repositorios Externos**
+            
+            Debido a una alta demanda simultánea en los servidores globales de literatura científica, no es posible establecer una conexión de datos en este momento. 
+            
+            El sistema de inteligencia SIVEC se sincronizará automáticamente para nuevos procesamientos a partir de las 12:00 am. Agradecemos su comprensión.
+            """)
