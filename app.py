@@ -15,7 +15,6 @@ from datetime import datetime
 st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon=" 🔬 ", layout="wide")
 
 # --- LÓGICA SUPABASE PARA CONTROL DE CUOTAS ---
-# Nota: Asegúrate de tener los secretos configurados en Streamlit
 supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
 def validar_cuota(email):
@@ -36,40 +35,43 @@ def validar_cuota(email):
         return True
     return False
 
-# --- CÓDIGO ORIGINAL SIN MODIFICAR (Funciones principales) ---
-# [Aquí insertarías todas tus funciones: generar_pdf_dictamen, ejecutar_sivec, etc.]
+# --- CÓDIGO ORIGINAL (Tu lógica de funciones) ---
+# [Aquí mantienes tus funciones: generar_pdf_dictamen, ejecutar_sivec, etc.]
 
 # ==============================================================================
-# INTERFAZ DE USUARIO PRINCIPAL (Estructura respetada)
+# INTERFAZ DE USUARIO (Orden corregido)
 # ==============================================================================
-# [Insertar aquí tu código original del sidebar, logo, etc.]
-# ... asegúrate de que 'area_estrategica' se defina aquí ...
+# 1. Definimos primero el Sidebar y la lógica que asigna 'area_estrategica'
+st.sidebar.header(" ⚙️  Panel de Control")
+rama_cientifica = st.sidebar.selectbox("Rama del Conocimiento:", [...]) # Tu lista original
+if rama_cientifica == " ✨  Personalizada / Otra Rama Científica":
+    rama_personalizada = st.sidebar.text_input("Especifica la disciplina:")
+    area_estrategica = rama_personalizada if rama_personalizada else "Disciplina Personalizada"
+else:
+    area_estrategica = rama_cientifica
 
-# AHORA SÍ, colocamos el título usando la variable ya definida:
+# 2. AHORA, tras definir la variable, podemos usarla
 st.markdown(f"###  📑  Módulo Activo: {area_estrategica}")
 
 # Campo para identificar al usuario
 email_usuario = st.sidebar.text_input("Correo Institucional COECyT:")
 
-termino_busqueda = st.text_input("Palabras clave para la búsqueda científica:", placeholder="Ej. Autonomous weapons laws ethics regulations")
-pregunta_usuario = st.text_area("Pregunta de investigación detallada:", placeholder="Ej. ¿Qué vacíos legales reportan frente al derecho internacional?")
+termino_busqueda = st.text_input("Palabras clave para la búsqueda científica:")
+pregunta_usuario = st.text_area("Pregunta de investigación detallada:")
 
 if st.button(" 🚀  Lanzar Análisis de Vanguardia"):
     if not email_usuario:
-        st.warning("⚠️ Por favor ingresa tu correo institucional para continuar.")
+        st.warning("⚠️ Por favor ingresa tu correo institucional.")
     elif not termino_busqueda or not pregunta_usuario:
-        st.warning(" ⚠️  Completa ambos campos para iniciar el escaneo.")
+        st.warning(" ⚠️  Completa todos los campos.")
     else:
-        # Validación de cuota antes de ejecutar
         if validar_cuota(email_usuario):
-            with st.status(" 🛸  Procesando peticiones en la infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
+            with st.status(" 🛸  Procesando...", expanded=True) as status:
                 ejecutar_sivec(termino_busqueda, pregunta_usuario)
                 status.update(label=" ✅  Análisis finalizado", state="complete")
         else:
             st.error("""
             ⚠️ **Congestión en Repositorios Externos**
             
-            Debido a una alta demanda simultánea en los servidores globales de literatura científica, no es posible establecer una conexión de datos en este momento. 
-            
-            El sistema de inteligencia SIVEC se sincronizará automáticamente para nuevos procesamientos a partir de las 12:00 am. Agradecemos su comprensión.
+            Debido a una alta demanda... (tu mensaje original)
             """)
