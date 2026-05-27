@@ -1,6 +1,6 @@
 import streamlit as st
 import requests
-import google.generativeai as genai  # Corregido para estabilidad
+import google.generativeai as genai  # CORRECCIÓN DE LIBRERÍA
 import io
 import datetime
 from supabase import create_client
@@ -11,9 +11,8 @@ from supabase import create_client
 st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon=" 🔬 ", layout="wide")
 
 # Inicialización de Clientes
-# Se utiliza la versión estable configurada con la API Key de tus secretos
+# CORRECCIÓN: Configuración de la librería estable
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-# Definimos el modelo explícitamente
 model = genai.GenerativeModel('gemini-1.5-flash')
 supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
@@ -70,14 +69,10 @@ if st.button(" 🚀  Lanzar Análisis de Vanguardia"):
         # Validación de seguridad
         if verificar_limite_y_sumar(user_email):
             with st.status(" 🛸  Procesando en infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
-                try:
-                    # Motor de Gemini (Estable)
-                    response = model.generate_content(pregunta_usuario)
-                    st.markdown(response.text)
-                    status.update(label=" ✅  Análisis finalizado", state="complete")
-                except Exception as e:
-                    status.update(label=" ❌  Error en el procesamiento", state="error")
-                    st.error(f"Error técnico de comunicación: {e}")
+                # CORRECCIÓN: Motor de Gemini compatible
+                response = model.generate_content(pregunta_usuario)
+                st.markdown(response.text)
+                status.update(label=" ✅  Análisis finalizado", state="complete")
         else:
             # MENSAJE DE BLOQUEO SOLICITADO
             st.error("""
