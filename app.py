@@ -12,8 +12,8 @@ from reportlab.lib.styles import getSampleStyleSheet
 # CONFIGURACIÓN E IDENTIDAD CORPORATIVA
 # ==============================================================================
 st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon=" 🔬 ", layout="wide")
-supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
 # LÓGICA DE SEGURIDAD SUPABASE
 def verificar_limite_y_sumar(user_id):
@@ -28,15 +28,21 @@ def verificar_limite_y_sumar(user_id):
         return True
     return False
 
+# AQUÍ TU FUNCIÓN EJECUTAR_SIVEC ORIGINAL (NO LA CAMBIES)
+def ejecutar_sivec(termino, pregunta):
+    # Aquí va TODO el código que tenías en tu archivo original 
+    # que hace la búsqueda, usa el motor de Gemini y genera el PDF.
+    # ... (asegúrate de que este bloque esté completo aquí) ...
+    pass 
+
 # ==============================================================================
-# INTERFAZ Y LÓGICA ORIGINAL (MANTENIDA)
+# INTERFAZ Y MOTOR SIVEC
 # ==============================================================================
 st.title(" 🔬  SIVEC")
 st.subheader("Sistema de Inteligencia para la Vanguardia Experimental y Científica")
 st.sidebar.header(" ⚙️  Panel de Control")
 user_email = st.sidebar.text_input("Correo Institucional (Acceso):")
-
-# ... (Aquí iría el resto de tu interfaz, selectbox, etc.)
+# ... (aquí el resto de tus inputs: area_estrategica, termino, etc.)
 
 if st.button(" 🚀  Lanzar Análisis de Vanguardia"):
     if not user_email:
@@ -44,14 +50,12 @@ if st.button(" 🚀  Lanzar Análisis de Vanguardia"):
     elif not termino_busqueda or not pregunta_usuario:
         st.warning(" ⚠️  Completa todos los campos.")
     else:
-        # AQUÍ LA INTEGRACIÓN:
+        # INTEGRACIÓN:
         if verificar_limite_y_sumar(user_email):
             with st.status(" 🛸  Procesando en infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
-                # Aquí llamas a tu función original ejecutar_sivec(...)
                 ejecutar_sivec(termino_busqueda, pregunta_usuario)
                 status.update(label=" ✅  Análisis finalizado", state="complete")
         else:
-            # TU MENSAJE DE BLOQUEO SOLICITADO
             st.error("""
             ⚠️ **Congestión en Repositorios Externos**
             
