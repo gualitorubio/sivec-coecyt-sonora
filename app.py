@@ -2,20 +2,23 @@ import streamlit as st
 import requests
 from google import genai
 import io
-import datetime
-from supabase import create_client
+import datetime # Importación para el control de fechas
+from supabase import create_client # Importación para Supabase
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
 
 # ==============================================================================
-# CONFIGURACIÓN E IDENTIDAD CORPORATIVA
+# CONFIGURACIÓN E IDENTIDAD CORPORATIVA - RUBIO INTELLIGENCE SYSTEMS
 # ==============================================================================
 st.set_page_config(page_title="SIVEC - Rubio Intelligence Systems", page_icon=" 🔬 ", layout="wide")
+
+# Inicialización de Clientes
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
-# LÓGICA DE SEGURIDAD SUPABASE
+# --- LÓGICA SUPABASE ---
 def verificar_limite_y_sumar(user_id):
     hoy = str(datetime.date.today())
     res = supabase.table("uso_sivec").select("consultas").eq("user_id", user_id).eq("fecha", hoy).execute()
@@ -28,34 +31,38 @@ def verificar_limite_y_sumar(user_id):
         return True
     return False
 
-# AQUÍ TU FUNCIÓN EJECUTAR_SIVEC ORIGINAL (NO LA CAMBIES)
-def ejecutar_sivec(termino, pregunta):
-    # Aquí va TODO el código que tenías en tu archivo original 
-    # que hace la búsqueda, usa el motor de Gemini y genera el PDF.
-    # ... (asegúrate de que este bloque esté completo aquí) ...
-    pass 
-
 # ==============================================================================
-# INTERFAZ Y MOTOR SIVEC
+# INTERFAZ Y TAXONOMÍA ORIGINAL
 # ==============================================================================
 st.title(" 🔬  SIVEC")
 st.subheader("Sistema de Inteligencia para la Vanguardia Experimental y Científica")
+st.caption("Propiedad de Rubio Intelligence Systems.")
+st.markdown("---")
 st.sidebar.header(" ⚙️  Panel de Control")
+
+# Tu campo de correo original
 user_email = st.sidebar.text_input("Correo Institucional (Acceso):")
-# ... (aquí el resto de tus inputs: area_estrategica, termino, etc.)
+area_estrategica = st.sidebar.selectbox("Rama del Conocimiento:", [...]) # (Tu lista original)
+
+# ==============================================================================
+# LÓGICA DE EJECUCIÓN CON VALIDACIÓN
+# ==============================================================================
+termino_busqueda = st.text_input("Palabras clave:")
+pregunta_usuario = st.text_area("Pregunta de investigación:")
 
 if st.button(" 🚀  Lanzar Análisis de Vanguardia"):
     if not user_email:
-        st.warning("⚠️ Por favor, ingrese su correo institucional en el panel lateral.")
+        st.warning("⚠️ Por favor, ingrese su correo institucional.")
     elif not termino_busqueda or not pregunta_usuario:
         st.warning(" ⚠️  Completa todos los campos.")
     else:
-        # INTEGRACIÓN:
+        # VALIDACIÓN SUPABASE ANTES DE EJECUTAR
         if verificar_limite_y_sumar(user_email):
-            with st.status(" 🛸  Procesando en infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
+            with st.status(" 🛸  Procesando peticiones en la infraestructura de Rubio Intelligence Systems...", expanded=True) as status:
                 ejecutar_sivec(termino_busqueda, pregunta_usuario)
                 status.update(label=" ✅  Análisis finalizado", state="complete")
         else:
+            # TU MENSAJE DE BLOQUEO EXACTO
             st.error("""
             ⚠️ **Congestión en Repositorios Externos**
             
